@@ -1,0 +1,73 @@
+[package]
+name = "pico-sdk-sys"
+description = "Unofficial Rust bindings for Pico SDK"
+version = "0.1.0"
+edition = "2021"
+authors = ["Kağan Ege <kaganegeozkan@gmail.com>"]
+license-file = "LICENSE"
+readme = "README.md"
+repository = "https://github.com/kaganege/pico-sdk-sys"
+build = "build/build.rs"
+
+[lib]
+test = false
+bench = false
+
+[features]
+default = ["enable-stdio-usb"]
+pico = []
+pico-w = []
+extras = []
+alloc = ["custom-print/alloc"]
+enable-stdio-uart = []
+enable-stdio-usb = []
+full = ["extras", "alloc"]
+
+[profile.release]
+codegen-units = 1 # better optimizations
+debug = true      # symbols are nice and they don't increase the size on Flash
+lto = true        # better optimizations
+
+
+[[example]]
+name = "blink"
+required-features = ["pico"]
+
+[[example]]
+name = "picow_blink"
+required-features = ["pico-w"]
+
+[[example]]
+name = "hello_usb"
+required-features = ["enable-stdio-usb"]
+
+[[example]]
+name = "hello_serial"
+required-features = ["enable-stdio-uart"]
+
+[[example]]
+name = "onboard_temperature"
+required-features = ["enable-stdio-usb"]
+
+
+[dependencies]
+custom-print = { version = "1.0.0", default-features = false }
+
+[build-dependencies]
+bindgen = "0.69.4"
+cmake = "0.1.50"
+flate2 = "1.0.30"
+paste = "1.0.15"
+reqwest = { version = "0.12.5", features = ["blocking"] }
+serde = { version = "1.0.203", features = ["derive"] }
+tar = "0.4.41"
+toml = { version = "0.8.14", features = ["parse"] }
+zip = { version = "2.1.3", default-features = false, features = [
+  "deflate",
+  "flate2",
+] }
+
+[dev-dependencies]
+cortex-m = "0.7.7"
+cortex-m-rt = "0.7.3"
+panic-halt = "0.2.0"
