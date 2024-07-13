@@ -6,7 +6,7 @@ edition = "2021"
 authors = ["Kağan Ege <kaganegeozkan@gmail.com>"]
 license-file = "LICENSE"
 readme = "README.md"
-repository = "https://github.com/kaganege/pico-sdk-sys"
+repository = "https://github.com/kaganege/pico-sdk-rust"
 build = "build/build.rs"
 
 [lib]
