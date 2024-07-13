@@ -1,17 +1,4 @@
 {
   "rust-analyzer.cargo.allTargets": false,
-  "rust-analyzer.cargo.target": "thumbv6m-none-eabi",
-  "files.associations": {
-    "*.ejs": "html",
-    "*.jsx": "javascriptreact",
-    "*.css": "tailwindcss",
-    ".env": "dotenv",
-    ".env.example": "dotenv",
-    "stdlib.h": "c",
-    "stdio_usb.h": "c",
-    "stdio_semihosting.h": "c",
-    "gpio.h": "c",
-    "pico.h": "c",
-    "stdio.h": "c"
-  }
+  "rust-analyzer.cargo.target": "thumbv6m-none-eabi"
 }

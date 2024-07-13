@@ -34,7 +34,7 @@ pub unsafe fn gpio_is_dir_out(gpio: u32) -> u32 {
 
 /// Get a specific GPIO direction
 ///
-/// Returns `true` for out, `false` for in
+/// Returns `1` for out, `0` for in
 pub unsafe fn gpio_get_dir(gpio: u32) -> u32 {
   gpio_is_dir_out(gpio)
 }

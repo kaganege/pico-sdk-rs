@@ -47,9 +47,9 @@ impl<T> ::core::cmp::PartialEq for __BindgenUnionField<T> {
 impl<T> ::core::cmp::Eq for __BindgenUnionField<T> {}
 pub const __NEWLIB_H__: u32 = 1;
 pub const _NEWLIB_VERSION_H__: u32 = 1;
-pub const _NEWLIB_VERSION: &[u8; 6] = b"4.3.0\0";
+pub const _NEWLIB_VERSION: &[u8; 6] = b"4.4.0\0";
 pub const __NEWLIB__: u32 = 4;
-pub const __NEWLIB_MINOR__: u32 = 3;
+pub const __NEWLIB_MINOR__: u32 = 4;
 pub const __NEWLIB_PATCHLEVEL__: u32 = 0;
 pub const _ATEXIT_DYNAMIC_ALLOC: u32 = 1;
 pub const _FSEEK_OPTIMIZATION: u32 = 1;
@@ -4380,7 +4380,7 @@ pub struct _reent {
 #[derive(Debug, Copy, Clone)]
 pub struct _reent__bindgen_ty_1 {
     pub _reent: __BindgenUnionField<_reent__bindgen_ty_1__bindgen_ty_1>,
-    pub bindgen_union_field: [u64; 25usize],
+    pub bindgen_union_field: [u64; 29usize],
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -4403,6 +4403,7 @@ pub struct _reent__bindgen_ty_1__bindgen_ty_1 {
     pub _wcrtomb_state: _mbstate_t,
     pub _wcsrtombs_state: _mbstate_t,
     pub _h_errno: ::core::ffi::c_int,
+    pub _getlocalename_l_buf: [::core::ffi::c_char; 32usize],
 }
 extern "C" {
     pub static mut _impure_ptr: *mut _reent;

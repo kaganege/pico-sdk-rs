@@ -18,6 +18,7 @@ pub unsafe fn put_str_raw(value: &str) {
 
   #[cfg(not(feature = "alloc"))]
   unsafe {
+    $crate::io::put_str_raw("error: ");
     $crate::io::put_str_raw(value);
   }
 });

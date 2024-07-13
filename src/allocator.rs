@@ -15,7 +15,6 @@ unsafe impl GlobalAlloc for Allocator {
   }
 }
 
-// TODO: Change as CortexMHeap
 /// The static global allocator.
 #[global_allocator]
 static GLOBAL_ALLOCATOR: Allocator = Allocator;
