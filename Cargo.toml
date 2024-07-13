@@ -15,7 +15,6 @@ bench = false
 
 [features]
 default = ["enable-stdio-usb"]
-pico = []
 pico-w = []
 extras = []
 alloc = ["custom-print/alloc"]

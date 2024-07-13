@@ -28,20 +28,8 @@ struct BuildInfo {
   pub link_flags: Vec<String>,
 }
 
-const BOARD_FEATURES: [&str; 2] = ["PICO", "PICO_W"];
-
 fn main() {
-  println!("cargo::rerun-if-changed=src/lib.rs");
   println!("cargo::rerun-if-changed=build/CMakeLists.txt");
-
-  let mut boards = BOARD_FEATURES
-    .iter()
-    .filter(|board| env::var(format!("CARGO_FEATURE_{board}")).is_ok());
-  let board = boards.next().and_then(|board| Some(*board));
-  assert!(
-    boards.next().is_none(),
-    "You can't specify more than one board."
-  );
 
   // We use prebuilt binaries on Windows
   #[cfg(not(target_os = "windows"))]
@@ -49,6 +37,11 @@ fn main() {
     check_for_installation_requirements(),
     "A native C/C++ compiler (clang or gcc) needs to be installed and in PATH for manual compilation of the tools."
   );
+
+  let board = match env::var("CARGO_FEATURE_PICO_W") {
+    Ok(_) => "pico_w",
+    Err(_) => "pico",
+  };
 
   let profile = env::var("PROFILE").unwrap();
   let project_dir = env::current_dir().unwrap();
@@ -201,9 +194,7 @@ fn main() {
   cmake_config.define("PICO_TOOLCHAIN_PATH", &toolchain_path);
 
   // Board
-  if let Some(board) = board {
-    cmake_config.define("PICO_BOARD", board.to_lowercase());
-  }
+  cmake_config.define("PICO_BOARD", board);
 
   // Standart IO
   if env::var("CARGO_FEATURE_ENABLE_STDIO_USB").is_ok() {
@@ -246,7 +237,7 @@ fn main() {
     .header(current_dir.join("pico-sdk.h").display().to_string())
     .header_contents(
       "_cyw43",
-      if board.is_some_and(|b| b == "PICO_W") {
+      if board == "pico_w" {
         "#include \"pico/cyw43_arch.h\""
       } else {
         ""
