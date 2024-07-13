@@ -4,10 +4,11 @@ use std::{
   env,
   ffi::OsStr,
   fs,
-  io::{Read, Seek, Write},
+  io::{Read, Seek},
   path::{Path, PathBuf},
   str,
 };
+use which::which;
 
 #[cfg_attr(target_os = "windows", path = "config/windows.rs")]
 #[cfg_attr(target_os = "linux", path = "config/linux.rs")]
@@ -33,12 +34,6 @@ fn main() {
   println!("cargo::rerun-if-changed=src/lib.rs");
   println!("cargo::rerun-if-changed=build/CMakeLists.txt");
 
-  // By default, Cargo will re-run a build script whenever
-  // any file in the project changes. By specifying `memory.x`
-  // here, we ensure the build script is only re-run when
-  // `memory.x` is changed.
-  println!("cargo:rerun-if-changed=memory.x");
-
   let mut boards = BOARD_FEATURES
     .iter()
     .filter(|board| env::var(format!("CARGO_FEATURE_{board}")).is_ok());
@@ -48,14 +43,23 @@ fn main() {
     "You can't specify more than one board."
   );
 
+  // We use prebuilt binaries on Windows
+  #[cfg(not(target_os = "windows"))]
+  assert!(
+    check_for_installation_requirements(),
+    "A native C/C++ compiler (clang or gcc) needs to be installed and in PATH for manual compilation of the tools."
+  );
+
   let profile = env::var("PROFILE").unwrap();
   let project_dir = env::current_dir().unwrap();
   let current_dir = project_dir.join("build");
   let assets = current_dir.join("assets");
   let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-  let sdk_lib_dir = out_dir.join("sdk");
-  let mut toolchain_path = out_dir.join("toolchain");
-  let ninja_path = out_dir.join("ninja");
+  let sdk_build_dir = out_dir.join("sdk");
+  let ninja_path = which("ninja").unwrap_or(out_dir.join("ninja.exe"));
+  let mut toolchain_path = env::var("PICO_TOOLCHAIN_PATH")
+    .and_then(|path| Ok(PathBuf::from(path)))
+    .unwrap_or(out_dir.join("toolchain"));
 
   if !assets.exists() {
     fs::create_dir(&assets).expect("An error occurred while creating assets folder");
@@ -94,8 +98,32 @@ fn main() {
     .expect("Couldn't extract toolchain!");
   }
 
-  if let Ok(mut dir) = toolchain_path.read_dir() {
-    toolchain_path = dir.next().unwrap().unwrap().path();
+  {
+    const REQUIRED_FOLDERS: [&str; 4] = ["arm-none-eabi", "bin", "include", "lib"];
+    let mut dir: Vec<fs::DirEntry> = toolchain_path
+      .read_dir()
+      .unwrap()
+      .filter_map(Result::ok)
+      .collect();
+
+    if dir.len() == 1 {
+      toolchain_path = dir.first().unwrap().path();
+      dir = toolchain_path
+        .read_dir()
+        .unwrap()
+        .filter_map(Result::ok)
+        .collect();
+    }
+
+    assert!(
+      REQUIRED_FOLDERS.iter().all(|&folder| {
+        dir
+          .iter()
+          .find(|d| d.file_name().to_str().is_some_and(|name| name == folder))
+          .is_some()
+      }),
+      "Wrong toolchain path!"
+    );
   }
 
   if NINJA_DOWNLOAD_URL.is_empty() {
@@ -118,7 +146,7 @@ fn main() {
     extract_archive(
       ninja_archive_path.extension().unwrap(),
       &mut ninja_archive,
-      &ninja_path,
+      &ninja_path.join(".."),
     )
     .expect("Couldn't extract toolchain!");
   }
@@ -148,17 +176,17 @@ fn main() {
   let mut cmake_config = cmake::Config::new(&current_dir);
 
   // Ninja
-  cmake_config.define("CMAKE_MAKE_PROGRAM", ninja_path.join("ninja.exe"));
+  cmake_config.define("CMAKE_MAKE_PROGRAM", ninja_path);
 
   // Compiler
-  // cmake_config.define(
-  //   "CMAKE_C_COMPILER",
-  //   toolchain_path.join("bin").join("arm-none-eabi-gcc.exe"),
-  // );
-  // cmake_config.define(
-  //   "CMAKE_CXX_COMPILER",
-  //   toolchain_path.join("bin").join("arm-none-eabi-g++.exe"),
-  // );
+  cmake_config.define(
+    "CMAKE_C_COMPILER",
+    toolchain_path.join("bin").join("arm-none-eabi-gcc.exe"),
+  );
+  cmake_config.define(
+    "CMAKE_CXX_COMPILER",
+    toolchain_path.join("bin").join("arm-none-eabi-g++.exe"),
+  );
 
   cmake_config.define("PICO_COMPILER", "pico_arm_gcc");
 
@@ -170,7 +198,7 @@ fn main() {
   }
 
   // Toolchain
-  // cmake_config.define("PICO_TOOLCHAIN_PATH", toolchain_path);
+  cmake_config.define("PICO_TOOLCHAIN_PATH", &toolchain_path);
 
   // Board
   if let Some(board) = board {
@@ -193,9 +221,9 @@ fn main() {
   // Output
   cmake_config.define(
     "CMAKE_ARCHIVE_OUTPUT_DIRECTORY",
-    sdk_lib_dir.display().to_string(),
+    sdk_build_dir.display().to_string(),
   );
-  cmake_config.out_dir(sdk_lib_dir);
+  cmake_config.out_dir(sdk_build_dir);
 
   let dst = cmake_config
     .generator("Ninja")
@@ -248,25 +276,9 @@ fn main() {
     .write_to_file(project_dir.join("src").join("pico_sdk.rs"))
     .expect("Couldn't write bindings!");
 
-  // Put `memory.x` in our output directory and ensure it's
-  // on the linker search path.
-  fs::File::create(out_dir.join("memory.x"))
-    .unwrap()
-    .write_all(include_bytes!("memory.x"))
-    .unwrap();
-  println!("cargo:rustc-link-search={}", out_dir.display());
-
-  // `--nmagic` is required if memory section addresses are not aligned to 0x10000,
-  // for example the FLASH and RAM sections in your `memory.x`.
-  // See https://github.com/rust-embedded/cortex-m-quickstart/pull/95
-  println!("cargo:rustc-link-arg=--nmagic");
-
-  // Set the linker script to the one provided by cortex-m-rt.
-  println!("cargo:rustc-link-arg=-Tlink.x");
-
-  // for link_flag in build_info.link_flags {
-  //   println!("cargo:rustc-link-arg={link_flag}");
-  // }
+  for link_flag in build_info.link_flags {
+    println!("cargo:rustc-link-arg={link_flag}");
+  }
 
   match profile.as_str() {
     "release" => {
@@ -302,4 +314,13 @@ where
   }
 
   Ok(())
+}
+
+#[allow(unused)]
+fn check_for_installation_requirements() -> bool {
+  const SUPPORTED_COMPILERS: [&str; 3] = ["clang", "gcc", "cl"];
+
+  SUPPORTED_COMPILERS
+    .iter()
+    .any(|compiler| which(compiler).is_ok())
 }
