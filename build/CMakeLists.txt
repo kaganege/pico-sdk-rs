@@ -19,7 +19,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 # Pull in PICO SDK (must be before project)
-include(../pico-sdk/pico_sdk_init.cmake)
+include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
 
 if(DEFINED PICO_EXTRAS_PATH)
   include(${PICO_EXTRAS_PATH}/external/pico_extras_import.cmake)

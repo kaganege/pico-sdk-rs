@@ -172,12 +172,12 @@ fn main() {
   }
 
   if !sdk_dir.exists() {
-    Repository::clone(PICO_SDK_URL, &sdk_dir)
+    Repository::clone_recurse(PICO_SDK_URL, &sdk_dir)
       .expect("An error occurred while downloading pico sdk!");
   }
 
   if extras && !extras_dir.exists() {
-    Repository::clone(PICO_EXTRAS_URL, &extras_dir)
+    Repository::clone_recurse(PICO_EXTRAS_URL, &extras_dir)
       .expect("An error occurred while downloading pico extras!");
   }
 
@@ -197,6 +197,7 @@ fn main() {
   );
 
   cmake_config.define("PICO_COMPILER", "pico_arm_gcc");
+  cmake_config.define("PICO_SDK_PATH", &sdk_dir);
 
   if extras {
     cmake_config.define("PICO_EXTRAS_PATH", extras_dir);
