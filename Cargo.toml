@@ -38,6 +38,7 @@ bindgen = "0.69.4"
 cmake = "0.1.50"
 flate2 = "1.0.30"
 paste = "1.0.15"
+git2 = "0.19.0"
 reqwest = { version = "0.12.5", features = ["blocking"] }
 serde = { version = "1.0.203", features = ["derive"] }
 tar = "0.4.41"

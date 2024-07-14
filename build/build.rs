@@ -1,5 +1,6 @@
 use config::*;
 use flate2::read::GzDecoder;
+use git2::Repository;
 use std::{
   env,
   ffi::OsStr,
@@ -18,6 +19,9 @@ use which::which;
   path = "config/default.rs"
 )]
 mod config;
+
+const PICO_SDK_URL: &str = "https://github.com/raspberrypi/pico-sdk";
+const PICO_EXTRAS_URL: &str = "https://github.com/raspberrypi/pico-extras";
 
 #[allow(unused)]
 #[derive(Debug, serde::Deserialize)]
@@ -42,13 +46,14 @@ fn main() {
     Ok(_) => "pico_w",
     Err(_) => "pico",
   };
+  let extras = env::var("CARGO_FEATURE_EXTRAS").is_ok();
 
-  let profile = env::var("PROFILE").unwrap();
   let project_dir = env::current_dir().unwrap();
   let current_dir = project_dir.join("build");
   let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
   let assets = out_dir.join("assets");
-  let sdk_build_dir = out_dir.join("sdk");
+  let sdk_dir = out_dir.join("pico-sdk");
+  let extras_dir = out_dir.join("pico-extras");
   let ninja_path = which("ninja").unwrap_or(out_dir.join("ninja.exe"));
   let mut toolchain_path = env::var("PICO_TOOLCHAIN_PATH")
     .and_then(|path| Ok(PathBuf::from(path)))
@@ -166,6 +171,13 @@ fn main() {
     }
   }
 
+  Repository::clone(PICO_SDK_URL, &sdk_dir).expect("An error occurred while downloading pico sdk!");
+
+  if extras {
+    Repository::clone(PICO_EXTRAS_URL, &extras_dir)
+      .expect("An error occurred while downloading pico extras!");
+  }
+
   let mut cmake_config = cmake::Config::new(&current_dir);
 
   // Ninja
@@ -183,11 +195,8 @@ fn main() {
 
   cmake_config.define("PICO_COMPILER", "pico_arm_gcc");
 
-  if env::var("CARGO_FEATURE_EXTRAS").is_ok() {
-    cmake_config.define(
-      "PICO_EXTRAS_PATH",
-      current_dir.join("..").join("pico-extras"),
-    );
+  if extras {
+    cmake_config.define("PICO_EXTRAS_PATH", extras_dir);
   }
 
   // Assets
@@ -213,11 +222,7 @@ fn main() {
   }
 
   // Output
-  cmake_config.define(
-    "CMAKE_ARCHIVE_OUTPUT_DIRECTORY",
-    sdk_build_dir.display().to_string(),
-  );
-  cmake_config.out_dir(sdk_build_dir);
+  cmake_config.out_dir(sdk_dir);
 
   let dst = cmake_config
     .generator("Ninja")
@@ -272,15 +277,6 @@ fn main() {
 
   for link_flag in build_info.link_flags {
     println!("cargo:rustc-link-arg={link_flag}");
-  }
-
-  match profile.as_str() {
-    "release" => {
-      // Remove assets on release build to reduce size
-      fs::remove_dir_all(assets).unwrap();
-    }
-
-    _ => (),
   }
 }
 
