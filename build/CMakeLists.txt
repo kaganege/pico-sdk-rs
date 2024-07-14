@@ -38,7 +38,7 @@ if (PICO_ON_DEVICE)
   include(toml.cmake)
 
   if(WIN32)
-    set(pico-sdk-tools_DIR "assets")
+    set(pico-sdk-tools_DIR "${PICO_ASSETS_PATH}")
 
     include(${pico-sdk-tools_DIR}/pico-sdk-tools-config.cmake)
     include(${pico-sdk-tools_DIR}/pico-sdk-tools-config-version.cmake)

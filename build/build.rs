@@ -46,8 +46,8 @@ fn main() {
   let profile = env::var("PROFILE").unwrap();
   let project_dir = env::current_dir().unwrap();
   let current_dir = project_dir.join("build");
-  let assets = current_dir.join("assets");
   let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+  let assets = out_dir.join("assets");
   let sdk_build_dir = out_dir.join("sdk");
   let ninja_path = which("ninja").unwrap_or(out_dir.join("ninja.exe"));
   let mut toolchain_path = env::var("PICO_TOOLCHAIN_PATH")
@@ -189,6 +189,9 @@ fn main() {
       current_dir.join("..").join("pico-extras"),
     );
   }
+
+  // Assets
+  cmake_config.define("PICO_ASSETS_PATH", &assets);
 
   // Toolchain
   cmake_config.define("PICO_TOOLCHAIN_PATH", &toolchain_path);
