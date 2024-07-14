@@ -37,10 +37,8 @@ jobs:
 
       - name: Setup GNU Arm Embedded Toolchain
         uses: carlosperate/arm-none-eabi-gcc-action@v1.8.2
-        with:
-          path-env-var: PICO_TOOLCHAIN_PATH
-
-      - run: echo "$PICO_TOOLCHAIN_PATH"
+        id: arm-none-eabi-gcc-action
+      - run: export PICO_TOOLCHAIN_PATH="${{ steps.arm-none-eabi-gcc-action.outputs.path }}"
 
       - name: Setup ninja-build tool
         uses: seanmiddleditch/gha-setup-ninja@v5
