@@ -1,0 +1,51 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup GNU Arm Embedded Toolchain
+      uses: carlosperate/arm-none-eabi-gcc-action@v1.8.2
+
+    - name: Setup ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v5
+
+    - name: Build
+      run: cargo build --verbose --release
+      
+  build-with-env:
+    runs-on: ubuntu-latest
+    env:
+      PICO_SDK_PATH: ./pico-sdk
+      PICO_EXTRAS_PATH: ./pico-extras
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup GNU Arm Embedded Toolchain
+      uses: carlosperate/arm-none-eabi-gcc-action@v1.8.2
+      with:
+        path-env-var: PICO_TOOLCHAIN_PATH
+
+    - name: Setup ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v5
+
+    - name: Clone Pico SDK and extras
+      run: |
+        git clone --recurse https://github.com/raspberrypi/pico-sdk.git $PICO_SDK_PATH
+        git clone --recurse https://github.com/raspberrypi/pico-extras.git $PICO_EXTRAS_PATH
+
+    - name: Build
+      run: cargo build --verbose --release
