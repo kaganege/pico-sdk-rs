@@ -1,12 +1,14 @@
 [package]
 name = "pico-sdk-sys"
-description = "Unofficial Rust bindings for Pico SDK"
+description = "FFI bindings to Raspberry Pi's Pico SDK"
 version = "0.1.0"
 edition = "2021"
 authors = ["Kağan Ege <kaganegeozkan@gmail.com>"]
-license-file = "LICENSE"
+license = "MIT"
 readme = "README.md"
 repository = "https://github.com/kaganege/pico-sdk-rust"
+keywords = ["raspberry-pi", "embedded", "no-std"]
+categories = ["no-std", "external-ffi-bindings", "embedded"]
 build = "build/build.rs"
 
 [lib]
