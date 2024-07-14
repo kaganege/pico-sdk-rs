@@ -14,9 +14,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      NINJA_PATH: ~/ninja-build
-      PICO_SDK_PATH: ~/pico-sdk
-      PICO_EXTRAS_PATH: ~/pico-extras
+      NINJA_PATH: ./ninja-build
+      PICO_SDK_PATH: ./pico-sdk
+      PICO_EXTRAS_PATH: ./pico-extras
 
     steps:
       - uses: actions/checkout@v4
