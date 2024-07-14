@@ -10,6 +10,7 @@ use std::{
   str,
 };
 use which::which;
+use xz::read::XzDecoder;
 
 #[cfg_attr(target_os = "windows", path = "config/windows.rs")]
 #[cfg_attr(target_os = "linux", path = "config/linux.rs")]
@@ -305,11 +306,16 @@ where
       let mut archive = tar::Archive::new(tar);
       archive.unpack(output_path)?;
     }
+    Some("xz") => {
+      let tar = XzDecoder::new(archive_file);
+      let mut archive = tar::Archive::new(tar);
+      archive.unpack(output_path)?;
+    }
     Some("zip") => {
       let mut archive = zip::ZipArchive::new(archive_file)?;
       archive.extract(output_path)?;
     }
-    _ => panic!("Unsupported toolchain archive!"),
+    _ => return Err("Unsupported toolchain archive!"),
   }
 
   Ok(())
