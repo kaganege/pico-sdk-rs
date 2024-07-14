@@ -19,12 +19,6 @@ jobs:
       - name: Add thumbv6m-none-eabi target
         run: rustup target add thumbv6m-none-eabi
 
-      - name: Setup GNU Arm Embedded Toolchain
-        uses: carlosperate/arm-none-eabi-gcc-action@v1.8.2
-
-      - name: Setup ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@v5
-
       - name: Build
         run: cargo build --verbose --release
 

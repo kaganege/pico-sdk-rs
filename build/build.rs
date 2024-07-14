@@ -315,7 +315,7 @@ where
       let mut archive = zip::ZipArchive::new(archive_file)?;
       archive.extract(output_path)?;
     }
-    _ => return Err("Unsupported toolchain archive!"),
+    _ => return Err("Unsupported toolchain archive!".into()),
   }
 
   Ok(())
