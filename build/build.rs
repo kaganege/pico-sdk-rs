@@ -52,12 +52,11 @@ fn main() {
   let current_dir = project_dir.join("build");
   let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
   let assets = out_dir.join("assets");
-  let sdk_dir = out_dir.join("pico-sdk");
-  let extras_dir = out_dir.join("pico-extras");
+  let build_dir = out_dir.join("pico-sdk");
+  let sdk_dir = env_path_var_or("PICO_SDK_PATH", &build_dir);
+  let extras_dir = env_path_var_or("PICO_EXTRAS_PATH", out_dir.join("pico-extras"));
   let ninja_path = which("ninja").unwrap_or(out_dir.join("ninja.exe"));
-  let mut toolchain_path = env::var("PICO_TOOLCHAIN_PATH")
-    .and_then(|path| Ok(PathBuf::from(path)))
-    .unwrap_or(out_dir.join("toolchain"));
+  let mut toolchain_path = env_path_var_or("PICO_TOOLCHAIN_PATH", out_dir.join("toolchain"));
 
   if !assets.exists() {
     fs::create_dir(&assets).expect("An error occurred while creating assets folder");
@@ -226,18 +225,18 @@ fn main() {
   }
 
   // Output
-  cmake_config.out_dir(sdk_dir);
+  cmake_config.out_dir(build_dir);
 
   let dst = cmake_config
     .generator("Ninja")
     .no_build_target(true)
     .build();
-  let sdk_build_directory = dst.join("build");
+  let sdk_build_dir = dst.join("build");
 
-  println!("cargo:rustc-link-search=native={}", dst.display());
+  println!("cargo:rustc-link-search=native={}", sdk_build_dir.display());
   println!("cargo:rustc-link-lib=static=pico-sdk");
 
-  let raw_build_info = fs::read(sdk_build_directory.join("build_info.toml"))
+  let raw_build_info = fs::read(sdk_build_dir.join("build_info.toml"))
     .expect("An error occurred while reading build_info.toml");
   let build_info: BuildInfo =
     toml::from_str(str::from_utf8(&raw_build_info).expect("Invalid bytes in build_info.toml"))
@@ -282,6 +281,12 @@ fn main() {
   for link_flag in build_info.link_flags {
     println!("cargo:rustc-link-arg={link_flag}");
   }
+}
+
+fn env_path_var_or<K: AsRef<OsStr>, P: AsRef<Path>>(key: K, default: P) -> PathBuf {
+  env::var(key)
+    .and_then(|value| Ok(PathBuf::from(value)))
+    .unwrap_or(default.as_ref().to_path_buf())
 }
 
 fn extract_archive<E, F, O>(

@@ -10,6 +10,7 @@ programming language.
 
 ## Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
 - [Usage](#usage)
@@ -21,7 +22,7 @@ programming language.
 ## Getting Started
 
 Since this crate depends on the Pico C SDK and other tools
-([see the officialdocumentation](https://rptl.io/pico-c-sdk)), these must be
+([see the official documentation](https://rptl.io/pico-c-sdk)), these must be
 downloaded or compiled first. This crate will automatically download or compile
 these tools for you, but it is also possible to manually download and the crate
 will pick it up accordingly.
@@ -37,8 +38,9 @@ Otherwise, the following dependencies are needed to compile and build this crate
 
 #### Environment variables
 
-- `PICO_TOOLCHAIN_PATH` Path to Arm GNU Toolchain. It must contain
-  `arm-none-eabi`, `bin`, `include`, `lib` folders.
+- `PICO_SDK_PATH` Path to Pico SDK.
+- `PICO_EXTRAS_PATH` Path to Pico SDK extras. (Optional)
+- `PICO_TOOLCHAIN_PATH` Path to Arm GNU Toolchain. It must contain `arm-none-eabi`, `bin`, `include`, `lib` folders.
 - `PATH` This crate searches `ninja` in the PATH so be sure ninja is in the PATH.
 
 ## Usage
