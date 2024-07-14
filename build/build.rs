@@ -11,7 +11,7 @@ use std::{
 };
 use tar::Archive as TarArchive;
 use which::which;
-use xz::read::XzDecoder;
+use xz::{read::XzDecoder, stream::Stream};
 use zip::ZipArchive;
 
 #[cfg_attr(target_os = "windows", path = "config/windows.rs")]
@@ -309,7 +309,7 @@ where
       archive.unpack(output_path)?;
     }
     Some("xz") => {
-      let tar = XzDecoder::new(archive_file);
+      let tar = XzDecoder::new_stream(archive_file, Stream::new_lzma_decoder(u64::MAX).unwrap());
       let mut archive = TarArchive::new(tar);
       archive.unpack(output_path)?;
     }
