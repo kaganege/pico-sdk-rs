@@ -13,24 +13,27 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Add thumbv6m-none-eabi target
-        run: rustup target add thumbv6m-none-eabi
-
-      - name: Build
-        run: cargo build --verbose --release
-
-  build-with-env:
-    runs-on: ubuntu-latest
     env:
-      PICO_SDK_PATH: ./pico-sdk
-      PICO_EXTRAS_PATH: ./pico-extras
+      NINJA_PATH: ~/ninja-build
+      PICO_SDK_PATH: ~/pico-sdk
+      PICO_EXTRAS_PATH: ~/pico-extras
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        id: pico-sdk-cache
+        with:
+          path: |
+            ${{ env.PICO_SDK_PATH }}
+            ${{ env.PICO_EXTRAS_PATH }}
+          key: pico-sdk
+
+      - uses: actions/cache@v4
+        id: ninja-cache
+        with:
+          path: ${{ env.NINJA_PATH }}
+          key: pico-sdk
 
       - name: Add thumbv6m-none-eabi target
         run: rustup target add thumbv6m-none-eabi
@@ -42,8 +45,11 @@ jobs:
 
       - name: Setup ninja-build tool
         uses: seanmiddleditch/gha-setup-ninja@v5
+        with:
+          destination: ${{ env.NINJA_PATH }}
 
       - name: Clone Pico SDK and extras
+        if: steps.pico-sdk-cache.outputs.cache-hit != 'true'
         run: |
           git clone --recurse https://github.com/raspberrypi/pico-sdk.git $PICO_SDK_PATH
           git clone --recurse https://github.com/raspberrypi/pico-extras.git $PICO_EXTRAS_PATH
