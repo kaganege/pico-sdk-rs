@@ -171,9 +171,12 @@ fn main() {
     }
   }
 
-  Repository::clone(PICO_SDK_URL, &sdk_dir).expect("An error occurred while downloading pico sdk!");
+  if !sdk_dir.exists() {
+    Repository::clone(PICO_SDK_URL, &sdk_dir)
+      .expect("An error occurred while downloading pico sdk!");
+  }
 
-  if extras {
+  if extras && !extras_dir.exists() {
     Repository::clone(PICO_EXTRAS_URL, &extras_dir)
       .expect("An error occurred while downloading pico extras!");
   }
