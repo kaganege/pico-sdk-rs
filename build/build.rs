@@ -9,8 +9,10 @@ use std::{
   path::{Path, PathBuf},
   str,
 };
+use tar::Archive as TarArchive;
 use which::which;
 use xz::read::XzDecoder;
+use zip::ZipArchive;
 
 #[cfg_attr(target_os = "windows", path = "config/windows.rs")]
 #[cfg_attr(target_os = "linux", path = "config/linux.rs")]
@@ -290,15 +292,15 @@ fn env_path_var_or<K: AsRef<OsStr>, P: AsRef<Path>>(key: K, default: P) -> PathB
     .unwrap_or(default.as_ref().to_path_buf())
 }
 
-fn extract_archive<E, F, O>(
+fn extract_archive<E, F, P>(
   extension: E,
   archive_file: &mut F,
-  output_path: O,
+  output_path: P,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
 where
   E: AsRef<OsStr>,
   F: Read + Seek,
-  O: AsRef<Path>,
+  P: AsRef<Path>,
 {
   match extension.as_ref().to_str() {
     Some("gz") => {
@@ -308,11 +310,11 @@ where
     }
     Some("xz") => {
       let tar = XzDecoder::new(archive_file);
-      let mut archive = tar::Archive::new(tar);
+      let mut archive = TarArchive::new(tar);
       archive.unpack(output_path)?;
     }
     Some("zip") => {
-      let mut archive = zip::ZipArchive::new(archive_file)?;
+      let mut archive = ZipArchive::new(archive_file)?;
       archive.extract(output_path)?;
     }
     _ => return Err("Unsupported toolchain archive!".into()),
