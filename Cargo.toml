@@ -1,7 +1,7 @@
 [package]
 name = "pico-sdk-sys"
 description = "FFI bindings to Raspberry Pi's Pico SDK"
-version = "0.1.3"
+version = "0.1.2"
 edition = "2021"
 authors = ["Kağan Ege <kaganegeozkan@gmail.com>"]
 license = "MIT"

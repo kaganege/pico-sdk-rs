@@ -9,7 +9,6 @@ extern crate alloc;
 
 mod gpio;
 #[macro_use]
-#[cfg(any(feature = "enable-stdio-uart", feature = "enable-stdio-usb"))]
 mod io;
 #[doc(hidden)]
 mod pico_sdk;
@@ -19,4 +18,5 @@ mod pico_sdk;
 mod allocator;
 
 pub use gpio::*;
+pub use io::put_str_raw;
 pub use pico_sdk::*;
