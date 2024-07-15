@@ -30,12 +30,12 @@ macro_rules! flush {
   };
 }
 #[macro_export]
-macro_rules! print { ($($args:tt)*) => { cprint!($($args)*) } }
+macro_rules! print { ($($args:tt)*) => { $crate::cprint!($($args)*) } }
 #[macro_export]
-macro_rules! println { ($($args:tt)*) => { cprintln!($($args)*) } }
+macro_rules! println { ($($args:tt)*) => { $crate::cprintln!($($args)*) } }
 #[macro_export]
-macro_rules! eprint { ($($args:tt)*) => { ceprint!($($args)*) } }
+macro_rules! eprint { ($($args:tt)*) => { $crate::ceprint!($($args)*) } }
 #[macro_export]
-macro_rules! eprintln { ($($args:tt)*) => { ceprintln!($($args)*) } }
+macro_rules! eprintln { ($($args:tt)*) => { $crate::ceprintln!($($args)*) } }
 #[macro_export]
-macro_rules! dbg { ($($args:tt)*) => { cdbg!($($args)*) } }
+macro_rules! dbg { ($($args:tt)*) => { $crate::cdbg!($($args)*) } }
